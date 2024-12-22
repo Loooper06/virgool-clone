@@ -1,4 +1,4 @@
-import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from "@nestjs/typeorm";
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 
 export function TypeOrmConfig(): TypeOrmModuleOptions {
   const { DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD, DB_PORT } = process.env;
