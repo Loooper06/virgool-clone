@@ -17,7 +17,7 @@ import { PaginationDto } from "src/common/dtos/pagination.dto";
 import {
   paginationGenerator,
   paginationSolver,
-} from "src/common/utils/pagination.utils";
+} from "src/common/utils/pagination.util";
 
 @Injectable()
 export class CategoryService {
