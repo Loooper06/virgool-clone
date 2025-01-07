@@ -26,6 +26,7 @@ import { Request, Response } from "express";
 import { CookieKeys } from "src/common/enums/cookie.enum";
 import { AuthResponse } from "./types/response";
 import { REQUEST } from "@nestjs/core";
+import { CookieOptionsToken } from "src/common/utils/cookie.util";
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -57,7 +58,7 @@ export class AuthService {
     const validUsername = this.usernameValidator(method, username);
     const user = await this.checkUserExist(method, validUsername);
     if (!user) throw new UnauthorizedException(AuthMessage.NotFoundAccount);
-    const otp = await this.SaveOtp(user.id);
+    const otp = await this.SaveOtp(user.id, method);
     const token = this.tokenService.genOtpToken({ userId: user.id });
     return {
       code: otp.code,
@@ -79,7 +80,7 @@ export class AuthService {
     user = await this.userRepository.save(user);
     user.username = String("vr_" + user.id);
     await this.userRepository.save(user);
-    const otp = await this.SaveOtp(user.id);
+    const otp = await this.SaveOtp(user.id, method);
     const token = this.tokenService.genOtpToken({ userId: user.id });
     return {
       code: otp.code,
@@ -88,10 +89,7 @@ export class AuthService {
   }
   async sendResponse(response: Response, result: AuthResponse) {
     const { token, code } = result;
-    response.cookie(CookieKeys.Otp, token, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 60 * 2),
-    });
+    response.cookie(CookieKeys.Otp, token, CookieOptionsToken());
     return response.json({
       code,
     });
@@ -109,13 +107,17 @@ export class AuthService {
       throw new UnauthorizedException(AuthMessage.TryAgain);
 
     const accessToken = this.tokenService.genAccessToken({ userId });
+    if (otp.method === AuthMethod.Email) {
+      await this.userRepository.update({ id: userId }, { verify_email: true });
+    } else if (otp.method === AuthMethod.Phone) {
+      await this.userRepository.update({ id: userId }, { verify_phone: true });
+    }
 
     return {
       message: PublicMessage.LoggedIn,
       accessToken,
     };
   }
-  async checkLogin() {}
   usernameValidator(method: AuthMethod, username: string) {
     switch (method) {
       case AuthMethod.Email:
@@ -151,7 +153,7 @@ export class AuthService {
 
     return user;
   }
-  async SaveOtp(userId: number) {
+  async SaveOtp(userId: number, method: AuthMethod) {
     const code = randomInt(10000, 99999).toString();
     let otp = await this.otpRepository.findOneBy({ userId });
     let isOtpExist = false;
@@ -160,11 +162,13 @@ export class AuthService {
       isOtpExist = true;
       otp.code = code;
       otp.expiresIn = expiresIn;
+      otp.method = method;
     } else {
       otp = this.otpRepository.create({
         code,
         expiresIn,
         userId,
+        method,
       });
     }
     otp = await this.otpRepository.save(otp);

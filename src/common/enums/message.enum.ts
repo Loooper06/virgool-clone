@@ -1,6 +1,7 @@
 export enum BadRequestMessage {
   InValidLoginData = "اطلاعات ارسال شده برای ورود صحیح نمی باشد",
   InValidRegisterData = "اطلاعات ارسال شده برای ثبت نام صحیح نمی باشد",
+  SomeThingWentWrong = "خطایی پیش آمد ، مجددا تلاش نمایید",
 }
 
 export enum AuthMessage {
@@ -14,6 +15,8 @@ export enum AuthMessage {
 
 export enum ConflictMessage {
   CategoryTitle = "عنوان دسته بندی قبلا ثبت شده است",
+  Email = "ایمیل وارد شده نمی تواند ثبت شود",
+  Phone = "موبایل وارد شده نمی تواند ثبت شود",
 }
 
 export enum NotFoundMessage {
@@ -25,6 +28,8 @@ export enum NotFoundMessage {
 
 export enum ValidationMessage {
   InvalidImageFormat = "فرمت تصویر انتخاب شده باید از نوع png ، jpg ، jpeg باشد",
+  EMAIL_INVALID = "ایمیل وارد شده معتبر نمی باشد",
+  PHONE_INVALID = "موبایل وارد شده معتبر نمی باشد",
 }
 
 export enum PublicMessage {
