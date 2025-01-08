@@ -34,6 +34,11 @@ export class CategoryService {
     return { message: PublicMessage.Created };
   }
 
+  async insertByTitle(title: string) {
+    const category = this.categoryRepository.create({ title });
+    return await this.categoryRepository.save(category);
+  }
+
   async findAll(paginationDto: PaginationDto) {
     const { skip, limit, page } = paginationSolver(paginationDto);
     const [categories, count] = await this.categoryRepository.findAndCount({
@@ -52,6 +57,10 @@ export class CategoryService {
     if (!category)
       throw new NotFoundException(NotFoundMessage.NotFoundCategory);
     return category;
+  }
+
+  async getOneByTitle(title: string) {
+    return await this.categoryRepository.findOneBy({ title });
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
