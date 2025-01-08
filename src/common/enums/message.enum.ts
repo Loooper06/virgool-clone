@@ -17,6 +17,7 @@ export enum ConflictMessage {
   CategoryTitle = "عنوان دسته بندی قبلا ثبت شده است",
   Email = "ایمیل وارد شده نمی تواند ثبت شود",
   Phone = "موبایل وارد شده نمی تواند ثبت شود",
+  Username = "نام کاربری وارد شده نمی تواند ثبت شود",
 }
 
 export enum NotFoundMessage {

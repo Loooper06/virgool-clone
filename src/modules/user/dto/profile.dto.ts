@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsMobilePhone,
   IsOptional,
+  IsString,
   Length,
 } from "class-validator";
 import { Gender } from "../enum/gender.enum";
@@ -44,4 +45,11 @@ export class ChangePhoneDto {
   @ApiProperty()
   @IsMobilePhone("fa-IR", {}, { message: ValidationMessage.PHONE_INVALID })
   phone: string;
+}
+
+export class ChangeUsernameDto {
+  @ApiProperty()
+  @IsString()
+  @Length(3, 100)
+  username: string;
 }

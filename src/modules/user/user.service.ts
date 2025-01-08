@@ -176,6 +176,21 @@ export class UserService {
       message: PublicMessage.Updated,
     };
   }
+  async changeUsername(username: string) {
+    const { id } = this.request.user;
+    const user = await this.userRepository.findOneBy({ username });
+    if (user && user?.id !== id)
+      throw new ConflictException(ConflictMessage.Username);
+    else if (user && user?.id === id) {
+      return {
+        message: PublicMessage.Updated,
+      };
+    }
+    await this.userRepository.update({ id: user.id }, { username });
+    return {
+      message: PublicMessage.Updated,
+    };
+  }
   async checkOtp(userId: number, code: string) {
     const otp = await this.otpRepository.findOneBy({ userId });
     if (!otp) throw new BadRequestException(NotFoundMessage.Any);
