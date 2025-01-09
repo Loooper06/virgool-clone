@@ -25,7 +25,7 @@ export class BlogCommentEntity extends BaseEntity {
   @Column({ default: true })
   accepted: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   parentId: number;
 
   @ManyToOne(() => UserEntity, (user) => user.blog_comments, {
@@ -46,7 +46,6 @@ export class BlogCommentEntity extends BaseEntity {
   @OneToMany(() => BlogCommentEntity, (comment) => comment.parent)
   children: BlogCommentEntity[];
   @JoinColumn({ name: "parent" })
-  
   @CreateDateColumn()
   createdAt: Date;
   @CreateDateColumn()

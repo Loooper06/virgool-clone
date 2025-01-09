@@ -10,10 +10,10 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { BlogService } from "./blog.service";
-import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from "./dto/blog.dto";
+import { BlogService } from "./../services/blog.service";
+import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from "../dto/blog.dto";
 import { ApiBearerAuth, ApiConsumes, ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "../auth/guards/auth.guard";
+import { AuthGuard } from "../../auth/guards/auth.guard";
 import { SwaggerConsumes } from "src/common/enums/swagger.consumes.enum";
 import { Pagination } from "src/common/decorators/pagination.decorator";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
@@ -52,6 +52,16 @@ export class BlogController {
     return this.blogService.delete(id);
   }
 
+  @Get("/like/:id")
+  likeToggle(@Param("id", ParseIntPipe) id: number) {
+    return this.blogService.likeBlog(id);
+  }
+
+  @Get("/bookmark/:id")
+  bookmarkToggle(@Param("id", ParseIntPipe) id: number) {
+    return this.blogService.bookmarkBlog(id);
+  }
+
   @Get("/list")
   @Pagination()
   @SkipAuth()
@@ -61,5 +71,14 @@ export class BlogController {
     @Query() filterDto: FilterBlogDto
   ) {
     return this.blogService.blogList(paginationDto, filterDto);
+  }
+
+  @Get("/by-slug/:slug")
+  @Pagination()
+  findOneBySlug(
+    @Param("slug") slug: string,
+    @Query() @Query() paginationDto: PaginationDto
+  ) {
+    return this.blogService.findBlogBySlug(slug, paginationDto);
   }
 }

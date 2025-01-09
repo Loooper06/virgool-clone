@@ -6,9 +6,9 @@ import {
   Scope,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { BlogEntity } from "./entities/blog.entity";
+import { BlogEntity } from "./../entities/blog.entity";
 import { Repository } from "typeorm";
-import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from "./dto/blog.dto";
+import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from "./../dto/blog.dto";
 import { createSlug, randomID } from "src/common/utils/functions";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
@@ -22,10 +22,13 @@ import {
   paginationGenerator,
   paginationSolver,
 } from "src/common/utils/pagination.util";
-import { CategoryService } from "../category/category.service";
-import { BlogCategoryEntity } from "./entities/blog-category.entity";
+import { CategoryService } from "../../category/category.service";
+import { BlogCategoryEntity } from "./../entities/blog-category.entity";
 import { isArray } from "class-validator";
 import { EntityName } from "src/common/enums/entity.enum";
+import { BlogLikesEntity } from "./../entities/like.entity";
+import { BlogBookmarkEntity } from "./../entities/bookmark.entity";
+import { BlogCommentService } from "./comment.service";
 
 @Injectable({ scope: Scope.REQUEST })
 export class BlogService {
@@ -34,8 +37,13 @@ export class BlogService {
     private blogRepository: Repository<BlogEntity>,
     @InjectRepository(BlogCategoryEntity)
     private blogCategoryRepository: Repository<BlogCategoryEntity>,
+    @InjectRepository(BlogLikesEntity)
+    private blogLikeRepository: Repository<BlogLikesEntity>,
+    @InjectRepository(BlogBookmarkEntity)
+    private blogBookmarkRepository: Repository<BlogBookmarkEntity>,
     @Inject(REQUEST) private request: Request,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private blogCommentService: BlogCommentService
   ) {}
 
   async create(blogDto: CreateBlogDto) {
@@ -122,8 +130,24 @@ export class BlogService {
       .createQueryBuilder(EntityName.Blog)
       .leftJoin("blog.categories", "categories")
       .leftJoin("categories.category", "category")
-      .addSelect(["categories.id", "category.title"])
+      .leftJoin("blog.author", "author")
+      .leftJoin("author.profile", "profile")
+      .addSelect([
+        "categories.id",
+        "category.title",
+        "author.username",
+        "author.id",
+        "profile.nickname",
+      ])
       .where(where, { category, search })
+      .loadRelationCountAndMap("blog.likes", "blog.likes")
+      .loadRelationCountAndMap("blog.bookmarks", "blog.bookmarks")
+      .loadRelationCountAndMap(
+        "blog.comments",
+        "blog.comments",
+        "comments",
+        (qb) => qb.where("comments.accepted = :accepted", { accepted: true })
+      )
       .orderBy("blog.id", "DESC")
       .skip(skip)
       .take(limit)
@@ -196,7 +220,7 @@ export class BlogService {
 
     if (categories && isArray(categories) && categories.length > 0)
       await this.blogCategoryRepository.delete({ blogId: blog.id });
-    
+
     for (const categoryTitle of categories) {
       let category = await this.categoryService.getOneByTitle(categoryTitle);
 
@@ -213,10 +237,82 @@ export class BlogService {
       message: PublicMessage.Updated,
     };
   }
+  async likeBlog(blogId: number) {
+    const { id: userId } = this.request.user;
+    await this.findOne(blogId);
+    let message = PublicMessage.Like;
+    const isLiked = await this.blogLikeRepository.findOneBy({ userId, blogId });
+    if (isLiked) {
+      await this.blogLikeRepository.delete({ id: isLiked.id });
+      message = PublicMessage.DisLike;
+    } else await this.blogLikeRepository.insert({ userId, blogId });
 
+    return {
+      message,
+    };
+  }
+  async bookmarkBlog(blogId: number) {
+    const { id: userId } = this.request.user;
+    await this.findOne(blogId);
+    let message = PublicMessage.Bookmark;
+    const isBookmarked = await this.blogBookmarkRepository.findOneBy({
+      userId,
+      blogId,
+    });
+    if (isBookmarked) {
+      await this.blogBookmarkRepository.delete({ id: isBookmarked.id });
+      message = PublicMessage.UnBookmark;
+    } else await this.blogBookmarkRepository.insert({ userId, blogId });
+
+    return {
+      message,
+    };
+  }
   async findOne(id: number) {
     const blog = await this.blogRepository.findOneBy({ id });
     if (!blog) throw new NotFoundException(NotFoundMessage.Any);
     return blog;
+  }
+  async findBlogBySlug(slug: string, paginationDto: PaginationDto) {
+    const userId = this?.request?.user?.id;
+    const blog = await this.blogRepository
+      .createQueryBuilder(EntityName.Blog)
+      .leftJoin("blog.categories", "categories")
+      .leftJoin("categories.category", "category")
+      .leftJoin("blog.author", "author")
+      .leftJoin("author.profile", "profile")
+      .addSelect([
+        "categories.id",
+        "category.title",
+        "author.username",
+        "author.id",
+        "profile.nickname",
+      ])
+      .where({ slug })
+      .loadRelationCountAndMap("blog.likes", "blog.likes")
+      .loadRelationCountAndMap("blog.bookmarks", "blog.bookmarks")
+      .getOne();
+
+    if (!blog) throw new NotFoundException(NotFoundMessage.NotFoundPost);
+
+    const comments = await this.blogCommentService.blogCommentList(
+      blog.id,
+      paginationDto
+    );
+
+    const isLiked = !!(await this.blogLikeRepository.findOneBy({
+      userId,
+      blogId: blog.id,
+    }));
+    const isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({
+      userId,
+      blogId: blog.id,
+    }));
+    return {
+      blog,
+      isLiked,
+      isBookmarked,
+      comments,
+    };
   }
 }

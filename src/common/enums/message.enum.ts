@@ -3,6 +3,8 @@ export enum BadRequestMessage {
   InValidRegisterData = "اطلاعات ارسال شده برای ثبت نام صحیح نمی باشد",
   SomeThingWentWrong = "خطایی پیش آمد ، مجددا تلاش نمایید",
   InvalidCategories = "دسته بندی ها به درستی وارد نشده است",
+  Already_Accepted = "نظر انتخاب شده قبلا تایید شده است",
+  Already_Rejected = "نظر انتخاب شده قبلا رد شده است",
 }
 
 export enum AuthMessage {
@@ -41,4 +43,9 @@ export enum PublicMessage {
   Deleted = "با موفقیت حذف شد",
   Updated = "با موفقیت بروز رسانی شد",
   Inserted = "با موفقیت اضافه شد",
+  Like = "مقاله با موفقیت لایک شد",
+  DisLike = "لایک از مقاله برداشته شد",
+  Bookmark = "مفاله ذخیره شد",
+  UnBookmark = "مقاله از لیست ذخیره ها حذف شد",
+  CreatedComment = "نظر شما با موفقیت ثبت شد",
 }
