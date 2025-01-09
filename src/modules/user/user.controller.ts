@@ -5,11 +5,10 @@ import {
   Post,
   Put,
   Res,
-  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { ApiBearerAuth, ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import {
   ChangeEmailDto,
   ChangePhoneDto,
@@ -19,7 +18,6 @@ import {
 import { SwaggerConsumes } from "src/common/enums/swagger.consumes.enum";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { multerStorage } from "src/common/utils/multer.util";
-import { AuthGuard } from "../auth/guards/auth.guard";
 import { ProfileImages } from "./types/files";
 import { UploadedOptionalFiles } from "src/common/decorators/upload-file.decorator";
 import { Response } from "express";
@@ -27,11 +25,11 @@ import { CookieKeys } from "src/common/enums/cookie.enum";
 import { CookieOptionsToken } from "src/common/utils/cookie.util";
 import { PublicMessage } from "src/common/enums/message.enum";
 import { CheckOtpDto } from "../auth/dto/auth.dto";
+import { AuthDecorator } from "src/common/decorators/auth.decorator";
 
 @Controller("user")
 @ApiTags("User")
-@ApiBearerAuth("Authorization")
-@UseGuards(AuthGuard)
+@AuthDecorator()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

@@ -1,16 +1,24 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiConsumes, ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "../../auth/guards/auth.guard";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from "@nestjs/common";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { SwaggerConsumes } from "src/common/enums/swagger.consumes.enum";
 import { BlogCommentService } from "../services/comment.service";
 import { CreateCommentDto } from "../dto/comment.dto";
 import { Pagination } from "src/common/decorators/pagination.decorator";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
+import { AuthDecorator } from "src/common/decorators/auth.decorator";
 
 @Controller("blog-comment")
 @ApiTags("Blog")
-@ApiBearerAuth("Authorization")
-@UseGuards(AuthGuard)
+@AuthDecorator()
 export class CommentController {
   constructor(private readonly blogCommentService: BlogCommentService) {}
 
@@ -25,14 +33,14 @@ export class CommentController {
   find(@Query() paginationDto: PaginationDto) {
     return this.blogCommentService.commentList(paginationDto);
   }
- 
+
   @Put("/accept/:id")
-  accept(@Param("id",ParseIntPipe) id : number) {
+  accept(@Param("id", ParseIntPipe) id: number) {
     return this.blogCommentService.accept(id);
   }
-  
+
   @Put("/reject/:id")
-  reject(@Param("id",ParseIntPipe) id : number) {
+  reject(@Param("id", ParseIntPipe) id: number) {
     return this.blogCommentService.reject(id);
   }
 }
