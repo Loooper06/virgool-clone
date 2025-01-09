@@ -74,6 +74,7 @@ export class BlogController {
   }
 
   @Get("/by-slug/:slug")
+  @SkipAuth()
   @Pagination()
   findOneBySlug(
     @Param("slug") slug: string,

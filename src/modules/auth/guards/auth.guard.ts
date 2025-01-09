@@ -17,7 +17,6 @@ export class AuthGuard implements CanActivate {
     private authService: AuthService,
     private reflector: Reflector
   ) {}
-
   async canActivate(context: ExecutionContext) {
     const isSkippedAuthorization = this.reflector.get<boolean>(
       SKIP_AUTH,
@@ -30,7 +29,6 @@ export class AuthGuard implements CanActivate {
     request.user = await this.authService.validateAccessToken(token);
     return true;
   }
-
   protected extractAccessToken(req: Request) {
     const { authorization } = req.headers;
     if (!authorization || authorization.trim() == "")
