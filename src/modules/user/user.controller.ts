@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Res,
   UseInterceptors,
 } from "@nestjs/common";
@@ -27,8 +28,12 @@ import { Response } from "express";
 import { CookieKeys } from "src/common/enums/cookie.enum";
 import { CookieOptionsToken } from "src/common/utils/cookie.util";
 import { PublicMessage } from "src/common/enums/message.enum";
-import { CheckOtpDto } from "../auth/dto/auth.dto";
+import { BlockDto, CheckOtpDto } from "../auth/dto/auth.dto";
 import { AuthDecorator } from "src/common/decorators/auth.decorator";
+import { Pagination } from "src/common/decorators/pagination.decorator";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+import { CanAccess } from "src/common/decorators/role.decorator";
+import { Roles } from "src/common/enums/role.enum";
 
 @Controller("user")
 @ApiTags("User")
@@ -88,6 +93,14 @@ export class UserController {
       message: PublicMessage.SendOtp,
     });
   }
+  
+  @Post("/block")
+  @CanAccess(Roles.Admin)
+  @ApiConsumes(SwaggerConsumes.UrlEncoded, SwaggerConsumes.Json)
+  async blockUser(@Body() blockDto: BlockDto) {
+    return this.userService.blockToggle(blockDto);
+  }
+
   @Post("/verify-phone-otp")
   @ApiConsumes(SwaggerConsumes.UrlEncoded, SwaggerConsumes.Json)
   async verifyPhone(@Body() otpDto: CheckOtpDto) {
@@ -103,5 +116,25 @@ export class UserController {
   @ApiParam({ name: "followingId" })
   async follow(@Param("followingId", ParseIntPipe) followingId: number) {
     return this.userService.followToggle(followingId);
+  }
+  @Get("/profile")
+  profile() {
+    return this.userService.profile();
+  }
+  @Get("/list")
+  @CanAccess(Roles.Admin)
+  @Pagination()
+  getList(@Query() paginationDto: PaginationDto) {
+    return this.userService.getList(paginationDto);
+  }
+  @Get("/followings")
+  @Pagination()
+  getFollowersList(@Query() paginationDto: PaginationDto) {
+    return this.userService.getFollowingsList(paginationDto);
+  }
+  @Get("/followers")
+  @Pagination()
+  getFollowingsList(@Query() paginationDto: PaginationDto) {
+    return this.userService.getFollowersList(paginationDto);
   }
 }

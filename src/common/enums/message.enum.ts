@@ -5,7 +5,7 @@ export enum BadRequestMessage {
   InvalidCategories = "دسته بندی ها به درستی وارد نشده است",
   Already_Accepted = "نظر انتخاب شده قبلا تایید شده است",
   Already_Rejected = "نظر انتخاب شده قبلا رد شده است",
-  Invalid_Following = "مجاز به انجام این کار نیستید"
+  Invalid_Following = "مجاز به انجام این کار نیستید",
 }
 
 export enum AuthMessage {
@@ -51,8 +51,11 @@ export enum PublicMessage {
   CreatedComment = "نظر شما با موفقیت ثبت شد",
   Followed = "با موفقیت دنبال شد",
   UnFollowed = "کاربر از لیست دنبال شوندگان حذف شد",
+  Blocked = "کاربر انتخاب شده مسدود گردید",
+  UnBlocked = "کاربر انتخاب شده از لیست مسدودی ها حذف گردید",
 }
 
 export enum ForbiddenMessage {
   Forbidden = "شما مجاز به انجام این کار نیستید",
+  Blocked = "حساب کاربری شما مسدود می باشد لطفا با پشتیبانی در ارتباط باشید",
 }

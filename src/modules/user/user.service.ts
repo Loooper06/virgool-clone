@@ -29,6 +29,14 @@ import { OtpEntity } from "./entities/otp.entity";
 import { CookieKeys } from "src/common/enums/cookie.enum";
 import { AuthMethod } from "../auth/enums/method.enum";
 import { FollowEntity } from "./entities/follow.entity";
+import { EntityName } from "src/common/enums/entity.enum";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+import {
+  paginationGenerator,
+  paginationSolver,
+} from "src/common/utils/pagination.util";
+import { BlockDto } from "../auth/dto/auth.dto";
+import { ProfileStatus } from "./enum/status.enum";
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserService {
@@ -220,6 +228,114 @@ export class UserService {
       await this.followRepository.remove(isFollowed);
     } else
       await this.followRepository.insert({ followingId, followerId: userId });
+
+    return {
+      message,
+    };
+  }
+  async profile() {
+    const { id } = this.request.user;
+    return this.userRepository
+      .createQueryBuilder(EntityName.User)
+      .where({ id })
+      .leftJoinAndSelect("user.profile", "profile")
+      .loadRelationCountAndMap("user.followers", "user.followers")
+      .loadRelationCountAndMap("user.following", "user.following")
+      .getOne();
+  }
+  async getList(paginationDto: PaginationDto) {
+    const { limit, skip, page } = paginationSolver(paginationDto);
+    const [users, count] = await this.userRepository.findAndCount({
+      where: {},
+      take: limit,
+      skip,
+    });
+
+    return {
+      pagination: paginationGenerator(count, page, limit),
+      users,
+    };
+  }
+  async getFollowersList(paginationDto: PaginationDto) {
+    const { id: userId } = this.request.user;
+    const { limit, skip, page } = paginationSolver(paginationDto);
+    const [followers, count] = await this.followRepository.findAndCount({
+      where: { followingId: userId },
+      relations: {
+        follower: {
+          profile: true,
+        },
+      },
+      select: {
+        id: true,
+        follower: {
+          id: true,
+          username: true,
+          profile: {
+            id: true,
+            nickname: true,
+            bio: true,
+            image_profile: true,
+            bg_image: true,
+          },
+        },
+      },
+      take: limit,
+      skip,
+    });
+
+    return {
+      pagination: paginationGenerator(count, page, limit),
+      followers,
+    };
+  }
+  async getFollowingsList(paginationDto: PaginationDto) {
+    const { id: userId } = this.request.user;
+    const { limit, skip, page } = paginationSolver(paginationDto);
+    const [following, count] = await this.followRepository.findAndCount({
+      where: { followerId: userId },
+      relations: {
+        following: {
+          profile: true,
+        },
+      },
+      select: {
+        id: true,
+        following: {
+          id: true,
+          username: true,
+          profile: {
+            id: true,
+            nickname: true,
+            bio: true,
+            image_profile: true,
+            bg_image: true,
+          },
+        },
+      },
+      take: limit,
+      skip,
+    });
+
+    return {
+      pagination: paginationGenerator(count, page, limit),
+      following,
+    };
+  }
+  async blockToggle(blockDto: BlockDto) {
+    const { userId } = blockDto;
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException(NotFoundMessage.NotFoundUser);
+    let message = PublicMessage.Blocked;
+    if (user.status === ProfileStatus.Blocked) {
+      message = PublicMessage.UnBlocked;
+      await this.userRepository.update({ id: userId }, { status: null });
+    } else {
+      await this.userRepository.update(
+        { id: userId },
+        { status: ProfileStatus.Blocked }
+      );
+    }
 
     return {
       message,

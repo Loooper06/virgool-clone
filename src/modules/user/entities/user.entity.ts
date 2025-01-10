@@ -28,6 +28,8 @@ export class UserEntity extends BaseEntity {
   @Column({ unique: true, nullable: true })
   email: string;
   @Column({ nullable: true })
+  status: string;
+  @Column({ nullable: true })
   new_email: string;
   @Column({ nullable: true })
   new_phone: string;
@@ -65,10 +67,10 @@ export class UserEntity extends BaseEntity {
   @OneToMany(() => ImageEntity, (image) => image.user)
   images: ImageEntity[];
 
-  @OneToMany(() => FollowEntity, (follow) => follow.follower)
+  @OneToMany(() => FollowEntity, (follow) => follow.following)
   followers: FollowEntity[];
 
-  @OneToMany(() => FollowEntity, (follow) => follow.following)
+  @OneToMany(() => FollowEntity, (follow) => follow.follower)
   following: ImageEntity[];
 
   @CreateDateColumn()
