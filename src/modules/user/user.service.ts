@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
   Scope,
 } from "@nestjs/common";
 import { ProfileDto } from "./dto/profile.dto";
@@ -27,6 +28,7 @@ import { TokenService } from "../auth/token.service";
 import { OtpEntity } from "./entities/otp.entity";
 import { CookieKeys } from "src/common/enums/cookie.enum";
 import { AuthMethod } from "../auth/enums/method.enum";
+import { FollowEntity } from "./entities/follow.entity";
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserService {
@@ -35,6 +37,8 @@ export class UserService {
     private userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileEntity)
     private profileRepository: Repository<ProfileEntity>,
+    @InjectRepository(FollowEntity)
+    private followRepository: Repository<FollowEntity>,
     @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
     @Inject(REQUEST) private request: Request,
     private authService: AuthService,
@@ -199,5 +203,26 @@ export class UserService {
       throw new BadRequestException(AuthMessage.CodeExpired);
     if (otp.code !== code) throw new BadRequestException(AuthMessage.TryAgain);
     return otp;
+  }
+  async followToggle(followingId: number) {
+    const { id: userId } = this.request.user;
+    if (followingId === userId)
+      throw new BadRequestException(BadRequestMessage.Invalid_Following);
+    const following = await this.userRepository.findOneBy({ id: followingId });
+    if (!following) throw new NotFoundException(NotFoundMessage.NotFoundUser);
+    const isFollowed = await this.followRepository.findOneBy({
+      followerId: userId,
+      followingId,
+    });
+    let message = PublicMessage.Followed;
+    if (isFollowed) {
+      message = PublicMessage.UnFollowed;
+      await this.followRepository.remove(isFollowed);
+    } else
+      await this.followRepository.insert({ followingId, followerId: userId });
+
+    return {
+      message,
+    };
   }
 }

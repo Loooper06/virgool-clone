@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -8,7 +11,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { ApiConsumes, ApiParam, ApiTags } from "@nestjs/swagger";
 import {
   ChangeEmailDto,
   ChangePhoneDto,
@@ -94,5 +97,11 @@ export class UserController {
   @ApiConsumes(SwaggerConsumes.UrlEncoded, SwaggerConsumes.Json)
   async changeUsername(@Body() usernameDto: ChangeUsernameDto) {
     return this.userService.changeUsername(usernameDto.username);
+  }
+
+  @Get("/follow/:followingId")
+  @ApiParam({ name: "followingId" })
+  async follow(@Param("followingId", ParseIntPipe) followingId: number) {
+    return this.userService.followToggle(followingId);
   }
 }

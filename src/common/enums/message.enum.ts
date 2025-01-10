@@ -5,6 +5,7 @@ export enum BadRequestMessage {
   InvalidCategories = "دسته بندی ها به درستی وارد نشده است",
   Already_Accepted = "نظر انتخاب شده قبلا تایید شده است",
   Already_Rejected = "نظر انتخاب شده قبلا رد شده است",
+  Invalid_Following = "مجاز به انجام این کار نیستید"
 }
 
 export enum AuthMessage {
@@ -48,6 +49,8 @@ export enum PublicMessage {
   Bookmark = "مفاله ذخیره شد",
   UnBookmark = "مقاله از لیست ذخیره ها حذف شد",
   CreatedComment = "نظر شما با موفقیت ثبت شد",
+  Followed = "با موفقیت دنبال شد",
+  UnFollowed = "کاربر از لیست دنبال شوندگان حذف شد",
 }
 
 export enum ForbiddenMessage {
