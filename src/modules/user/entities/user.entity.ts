@@ -16,6 +16,7 @@ import { BlogLikesEntity } from "src/modules/blog/entities/like.entity";
 import { BlogBookmarkEntity } from "src/modules/blog/entities/bookmark.entity";
 import { BlogCommentEntity } from "src/modules/blog/entities/comment.entity";
 import { ImageEntity } from "src/modules/image/entities/image.entity";
+import { Roles } from "src/common/enums/role.enum";
 
 @Entity(EntityName.User)
 export class UserEntity extends BaseEntity {
@@ -35,6 +36,8 @@ export class UserEntity extends BaseEntity {
   verify_phone: boolean;
   @Column({ nullable: true })
   password: string;
+  @Column({ default: Roles.User })
+  role: string;
   @Column({ nullable: true })
   otpId: number;
   @OneToOne(() => OtpEntity, (otp) => otp.user, { nullable: true })
@@ -57,7 +60,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => BlogCommentEntity, (comment) => comment.user)
   blog_comments: BlogCommentEntity[];
-  
+
   @OneToMany(() => ImageEntity, (image) => image.user)
   images: ImageEntity[];
 

@@ -49,3 +49,7 @@ export enum PublicMessage {
   UnBookmark = "مقاله از لیست ذخیره ها حذف شد",
   CreatedComment = "نظر شما با موفقیت ثبت شد",
 }
+
+export enum ForbiddenMessage {
+  Forbidden = "شما مجاز به انجام این کار نیستید",
+}

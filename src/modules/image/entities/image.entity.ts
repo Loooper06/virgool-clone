@@ -1,7 +1,13 @@
 import { BaseEntity } from "src/common/abstracts/base.entity";
 import { EntityName } from "src/common/enums/entity.enum";
 import { UserEntity } from "src/modules/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne } from "typeorm";
+import {
+  AfterLoad,
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+} from "typeorm";
 
 @Entity(EntityName.Image)
 export class ImageEntity extends BaseEntity {
@@ -18,4 +24,9 @@ export class ImageEntity extends BaseEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.images, { onDelete: "CASCADE" })
   user: UserEntity;
+
+  @AfterLoad()
+  map() {
+    this.location = `http://localhost:4000/${this.location}`;
+  }
 }

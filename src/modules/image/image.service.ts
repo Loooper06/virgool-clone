@@ -31,7 +31,6 @@ export class ImageService {
       message: PublicMessage.Created,
     };
   }
-
   async findAll() {
     const userId = this?.request?.user?.id;
     return await this.imageRepository.find({
@@ -39,7 +38,6 @@ export class ImageService {
       order: { id: "DESC" },
     });
   }
-
   async findOne(id: number) {
     const userId = this?.request?.user?.id;
     const image = await this.imageRepository.find({
@@ -49,7 +47,6 @@ export class ImageService {
     if (!image) throw new NotFoundException(NotFoundMessage.Any);
     return image;
   }
-
   async remove(id: number) {
     const image = await this.findOne(id);
     await this.imageRepository.remove(image);

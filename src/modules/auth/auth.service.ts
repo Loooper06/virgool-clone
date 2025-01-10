@@ -27,6 +27,7 @@ import { CookieKeys } from "src/common/enums/cookie.enum";
 import { AuthResponse } from "./types/response";
 import { REQUEST } from "@nestjs/core";
 import { CookieOptionsToken } from "src/common/utils/cookie.util";
+import { KavenegarService } from "../http/kavenegar.service";
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -38,17 +39,21 @@ export class AuthService {
     @InjectRepository(OtpEntity)
     private otpRepository: Repository<OtpEntity>,
     @Inject(REQUEST) private request: Request,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private kavenegarService: KavenegarService
   ) {}
+
   async userExistence(authDto: AuthDto, response: Response) {
     const { username, method, type } = authDto;
     let result: AuthResponse;
     switch (type) {
       case AuthType.Login:
         result = await this.login(method, username);
+        // await this.sendOtp(method, username, result.code);
         return this.sendResponse(response, result);
       case AuthType.Register:
         result = await this.register(method, username);
+        // await this.sendOtp(method, username, result.code);
         return this.sendResponse(response, result);
       default:
         throw new UnauthorizedException();
@@ -91,6 +96,7 @@ export class AuthService {
     const { token, code } = result;
     response.cookie(CookieKeys.Otp, token, CookieOptionsToken());
     return response.json({
+      message: PublicMessage.SendOtp,
       code,
     });
   }
@@ -181,5 +187,12 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) throw new UnauthorizedException(AuthMessage.LoginAgain);
     return user;
+  }
+  async sendOtp(method: AuthMethod, username: string, code: string) {
+    if (method === AuthMethod.Email) {
+      //! Send Email
+    } else if (method === AuthMethod.Phone) {
+      await this.kavenegarService.sendVerificationSms(username, code);
+    }
   }
 }
